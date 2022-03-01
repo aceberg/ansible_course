@@ -1,0 +1,103 @@
+---
+- name: Configure nginx with self-signed certificate
+  hosts: nodes
+  become: true
+
+  tasks:
+  - name: Create nginx repo
+    copy:
+      src: nginx.repo
+      dest: /etc/yum.repos.d/nginx.repo
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: Install nginx and cryptography packages
+    yum:
+      name: "{{ item }}"
+      update_cache: true
+      state: present
+    loop:
+    - nginx
+    - python2-cryptography
+    - pyOpenSSL
+
+  - name: Generate an OpenSSL private key
+    openssl_privatekey:
+      path: /etc/nginx/selfsigned.key
+      size: 2048
+
+  - name: Generate an OpenSSL Certificate Signing Request
+    openssl_csr:
+      path: /etc/nginx/selfsigned.csr
+      privatekey_path: /etc/nginx/selfsigned.key
+      common_name: "{{ ansible_host }}"
+
+  - name: Generate a Self Signed OpenSSL certificate
+    openssl_certificate:
+      provider: selfsigned
+      path: /etc/nginx/selfsigned.crt
+      privatekey_path: /etc/nginx/selfsigned.key
+      csr_path: /etc/nginx/selfsigned.csr
+
+  - name: Copy main nginx config file
+    copy:
+      src: nginx.conf
+      dest: /etc/nginx/nginx.conf
+      owner: root
+      group: root
+      mode: 0644
+    notify: Restart nginx
+
+  - name: Copy site's nginx config file
+    template:
+      src: ssl.conf.j2
+      dest: /etc/nginx/conf.d/ssl.conf
+      owner: root
+      group: root
+      mode: 0644
+    notify: Restart nginx
+
+  - name: Copy index.html
+    template:
+      src: index.html.j2
+      dest: /usr/share/nginx/html/index.html
+      owner: root
+      group: root
+      mode: 0644
+    notify: Restart nginx
+
+  - name: Ensure nginx is enabled and started
+    service:
+      name: nginx
+      state: started
+      enabled: true
+
+  - name: Open 443 port
+    firewalld:
+      service: https
+      permanent: true
+      state: enabled
+      immediate: true
+    ignore_errors: true
+
+  post_tasks:
+  - name: Check web site from control server
+    uri:
+      url: "https://{{ ansible_host }}"
+      return_content: true
+      validate_certs: false
+    connection: local
+    register: example_webpage_out
+    failed_when: example_webpage_out.status != 200
+
+  # - name: Debug
+  #   debug:
+  #     msg: "{{ example_webpage_out }}"
+
+
+  handlers:
+  - name: Restart nginx
+    service:
+      name: nginx
+      state: restarted
