@@ -1,0 +1,19 @@
+---
+- name: Add 4 users
+  hosts: nodes
+  become: true
+
+  vars_files:
+  - users.yaml
+  
+  tasks:
+  - name: Add user
+    user:
+      name: "{{ user.key }}"
+      comment: Ansible-generated user
+      password: "{{ user.value.pw | string | password_hash('sha512') }}"
+      update_password: always
+    loop: "{{ lookup('dict', users) }}"
+    loop_control:
+      loop_var: user
+      pause: 5
