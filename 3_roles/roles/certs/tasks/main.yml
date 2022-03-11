@@ -1,0 +1,27 @@
+---
+# tasks file for certs
+  - name: Install cryptography packages
+    yum:
+      name:
+      - python2-cryptography
+      - pyOpenSSL
+      update_cache: true
+      state: present
+
+  - name: Generate an OpenSSL private key
+    openssl_privatekey:
+      path: /etc/ssl/selfsigned.key
+      size: 2048
+
+  - name: Generate an OpenSSL Certificate Signing Request
+    openssl_csr:
+      path: /etc/ssl/selfsigned.csr
+      privatekey_path: /etc/ssl/selfsigned.key
+      common_name: "{{ ansible_host }}"
+
+  - name: Generate a Self Signed OpenSSL certificate
+    openssl_certificate:
+      provider: selfsigned
+      path: /etc/ssl/selfsigned.crt
+      privatekey_path: /etc/ssl/selfsigned.key
+      csr_path: /etc/ssl/selfsigned.csr

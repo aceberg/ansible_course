@@ -1,0 +1,56 @@
+---
+# tasks file for nginx
+  - name: Create nginx repo
+    copy:
+      src: nginx.repo
+      dest: /etc/yum.repos.d/nginx.repo
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: Install nginx
+    yum:
+      name: nginx
+      update_cache: true
+      state: present
+
+  - name: Copy main nginx config file
+    copy:
+      src: nginx.conf
+      dest: /etc/nginx/nginx.conf
+      owner: root
+      group: root
+      mode: 0644
+    notify: Restart nginx
+
+  - name: Copy site's nginx config file
+    template:
+      src: ssl.conf.j2
+      dest: /etc/nginx/conf.d/ssl.conf
+      owner: root
+      group: root
+      mode: 0644
+    notify: Restart nginx
+
+  - name: Copy index.html
+    template:
+      src: index.html.j2
+      dest: /usr/share/nginx/html/index.html
+      owner: root
+      group: root
+      mode: 0644
+    notify: Restart nginx
+
+  - name: Ensure nginx is enabled and started
+    service:
+      name: nginx
+      state: started
+      enabled: true
+
+  - name: Open 443 port
+    firewalld:
+      service: https
+      permanent: true
+      state: enabled
+      immediate: true
+    ignore_errors: true
