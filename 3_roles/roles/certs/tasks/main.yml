@@ -12,12 +12,18 @@
     openssl_privatekey:
       path: /etc/ssl/selfsigned.key
       size: 2048
+      owner: root
+      group: root
+      mode: 0600
 
   - name: Generate an OpenSSL Certificate Signing Request
     openssl_csr:
       path: /etc/ssl/selfsigned.csr
       privatekey_path: /etc/ssl/selfsigned.key
       common_name: "{{ ansible_host }}"
+      owner: root
+      group: root
+      mode: 0644
 
   - name: Generate a Self Signed OpenSSL certificate
     openssl_certificate:
@@ -25,3 +31,6 @@
       path: /etc/ssl/selfsigned.crt
       privatekey_path: /etc/ssl/selfsigned.key
       csr_path: /etc/ssl/selfsigned.csr
+      owner: root
+      group: root
+      mode: 0644
