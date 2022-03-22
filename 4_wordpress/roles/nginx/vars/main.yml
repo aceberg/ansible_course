@@ -1,0 +1,8 @@
+---
+# vars file for nginx
+nginx_tls_port: 443
+nginx_no_tls_port: 80
+server_hostname: ansible-node1.localdomain
+
+cert_path: /etc/ssl/selfsigned.crt
+privatekey_path: /etc/ssl/selfsigned.key

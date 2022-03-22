@@ -1,0 +1,26 @@
+- name: Test module returns HTTP status code
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    server_address: "https://ya.ru/"
+
+  tasks:
+    - name: Get http code (bash)
+      httpcode_sh:
+        address: "{{ server_address }}"
+      register: bash_result
+
+    - name: print result
+      debug:
+        msg: "{{ bash_result }}"
+
+    - name: Get http code (python)
+      httpcode_py:
+        address: "{{ server_address }}"
+      register: python_result
+
+    - name: print result
+      debug:
+        msg: "{{ python_result }}"

@@ -1,0 +1,20 @@
+---
+- name: Install MariaDB, Nginx
+  hosts: nodes
+  become: true
+
+  roles:
+  - role: "mariadb"
+    tags: mariadb
+
+  - role: "certs"
+    tags: nginx
+
+  - role: "nginx"
+    tags: nginx
+
+  - role: "wordpress"
+    tags: wp
+
+  - role: "php"
+    tags: php

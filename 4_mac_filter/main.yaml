@@ -1,0 +1,13 @@
+---
+- name: Convert string to mac address
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    macstring: "a959142717b6"
+
+  tasks:
+    - name: debug
+      debug:
+        msg: "{{ macstring | string_to_mac }}"
